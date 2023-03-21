@@ -1,12 +1,13 @@
 import sys
 import time
 
-# from java.awt import *
+#from java.awt import *
 from java.io import *
 from java.lang import *
-# from javax.swing import *
+#from javax.swing import *
 from java.util import *
 
+print sys.path
 
 from edu.mines.jtk.awt import *
 from edu.mines.jtk.dsp import *
@@ -19,7 +20,7 @@ from edu.mines.jtk.util.ArrayMath import *
 from sos import *
 
 pngDir = None
-pngDir = "../../png/fed2/"
+pngDir = "/home/dev//app/rez-sos/png/fed2/"
 
 seismicDir = "../../data/fed2/"
 fxfile = "f3d75s"
@@ -35,9 +36,9 @@ def main(args):
   #goGaussian()
   #goSlopeVector()
   #goDiffusivity()
-  goDaveLocalSmoothingFilter()
-  goFastLinearDiffusion()
-  #goFastNonlinearDiffusion()
+  #goDaveLocalSmoothingFilter()goFastNonlinearDiffusion()
+  #goFastLinearDiffusion()
+  goFastNonlinearDiffusion()
 
 
 # Here we show that isotropic Gaussian smoothing 
@@ -106,6 +107,7 @@ def goFastLinearDiffusion():
   gx = fed.apply(sig,ets,fx)
   end = time.time()
   print end-start
+  writeImage("/home/dev/app/rez-sos/data/fed2/output-linear", gx)
   plot(sub(fx,gx),cmin=-0.5,cmax=0.5,cint=0.2,label="Amplitude",png="fgl")
   plot(fx,cmin=-1,cmax=1,cint=1.0,label="Amplitude",png="seis")
   plot(gx,cmin=-1,cmax=1,cint=1.0,label="Amplitude",png="seisLinearSmooth")
@@ -128,6 +130,7 @@ def goDiffusivity():
   fws = zerofloat(n1,n2)
   fed.applyForWeightsP0(lbd,ets,fx,fw)
   fed.applyForWeightsP1(lbd,ets,fx,fws)
+  
   plot(fx,sub(1,fw),cmin=0.3,cmax=1,cmap=jetFillExceptMin(1.0),cint=0.2,
        label="Diffusivity",png="initialDiffusivity")
   plot(fx,sub(1,fws),cmin=0.3,cmax=1,cmap=jetFillExceptMin(1.0),cint=0.2,
@@ -136,6 +139,7 @@ def goDiffusivity():
 # Linear and structure-oriented (anisotrpic) smoothing
 def goFastNonlinearDiffusion():
   fx = readImage(fxfile)
+  print fx
   fx = gain(fx)
   sig1,sig2=4,2
   lof = LocalOrientFilter(sig1,sig2)
@@ -150,6 +154,8 @@ def goFastNonlinearDiffusion():
   ws = zerofloat(n1,n2)
   fed.applyForWeightsP(lbd,ets,gx,wp)
   fed.applyForWeightsP(lbd,ets,fx,ws)
+  #print gx
+  writeImage("/home/dev/app/rez-sos/data/fed2/output-non-linear.dat", gx)
   plot(sub(fx,gx),cmin=-0.5,cmax=0.5,cint=0.2,label="Amplitude",png="fgn")
   plot(fx,sub(1,ws),cmin=0.3,cmax=1,cmap=jetFillExceptMin(1.0),cint=0.2,
        label="Diffusivity",png="wsn")
@@ -158,6 +164,7 @@ def goFastNonlinearDiffusion():
   plot(gx,cmin=-1,cmax=1,cint=1.0,label="Amplitude",png="gxn")
   plot(fx,cmin=-1,cmax=1,cint=1.0,label="Amplitude",png="fx")
   plot(fx,t=ets,cmin=-1,cmax=1,cint=1.0,label="Amplitude",png="fxet")
+  
 
 def normalize(ss):
   sub(ss,min(ss),ss)
@@ -189,7 +196,8 @@ def grayRamp(alpha):
 
 def plot(f,g=None,v1=None,v2=None, cmap=None,cmin=None,cmax=None,cint=None,
         label=None,neareast=False,png=None): 
-  sp = SimplePlot(SimplePlot.Origin.UPPER_LEFT)
+  sp = SimplePlot()
+  #SimplePlot.Origin.UPPER_LEFT
   sp.setVInterval(0.1)
   sp.setHInterval(1.0)
   sp.setVLimits(f1,f1+n1*d1)
@@ -281,6 +289,8 @@ def frame2Teapot(panel,png=None):
   if png and pngDir:
     frame.paintToPng(400,3.2,pngDir+"/"+png+".png")
   return frame
+
+
 def makePointSets(cmap,f,x1,x2):
   sets = {}
   for i in range(len(f)):
@@ -315,8 +325,9 @@ def makePointSets(cmap,f,x1,x2):
 # utilities
 
 def readImage(name):
-  fileName = seismicDir+name+".dat"
+  fileName = "/home/dev/app/rez-sos/data/fed2/f3d75s.dat"
   n1,n2 = s1.count,s2.count
+  print n1, n2
   image = zerofloat(n1,n2)
   ais = ArrayInputStream(fileName)
   ais.readFloats(image)
@@ -324,7 +335,7 @@ def readImage(name):
   return image
 
 def writeImage(name,image):
-  fileName = seismicDir+name+".dat"
+  fileName = name
   aos = ArrayOutputStream(fileName)
   aos.writeFloats(image)
   aos.close()
@@ -333,12 +344,18 @@ def writeImage(name,image):
 #############################################################################
 # Run the function main on the Swing thread
 import sys
-# class _RunMain(Runnable):
-#   def __init__(self,main):
-#     self.main = main
-#   def run(self):
-#     self.main(sys.argv)
-# def run(main):
-#   SwingUtilities.invokeLater(_RunMain(main)) 
-# run(main)
-main("params")
+"""
+
+class _RunMain(Runnable):
+  def __init__(self,main):
+    self.main = main
+  def run(self):
+    self.main(sys.argv)
+    
+def run(main):
+  SwingUtilities.invokeLater(_RunMain(main)) 
+  
+run(main)
+"""
+
+main("a")
